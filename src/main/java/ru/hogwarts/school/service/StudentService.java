@@ -1,12 +1,11 @@
 package ru.hogwarts.school.service;
 
 import org.springframework.stereotype.Service;
-import ru.hogwarts.school.exception.FacultyNotFoundException;
 import ru.hogwarts.school.exception.StudentNotFoundException;
-import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -42,5 +41,11 @@ public class StudentService {
             throw new StudentNotFoundException(id);
         }
         return students.remove(id);
+    }
+
+    public List<Student> filterByAge(int age) {
+        return students.values().stream()
+                .filter(student -> student.getAge() == age)
+                .toList();
     }
 }
