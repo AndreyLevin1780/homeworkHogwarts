@@ -38,12 +38,12 @@ public class StudentController {
     }
 
     @GetMapping(params = "age")
-    public List<Student> filterByAge(@RequestParam int age) {
+    public List<Student> filterByAge(@RequestParam(required = false) int age) {
         return studentService.filterByAge(age);
     }
 
     @GetMapping(params = {"minAge", "maxAge"})
-    public List<Student> filterByRangeAge(@RequestParam int minAge, @RequestParam int maxAge) {
+    public List<Student> filterByRangeAge(@RequestParam(required = false) int minAge, @RequestParam(required = false) int maxAge) {
         return studentService.filterByRangeAge(minAge, maxAge);
     }
 

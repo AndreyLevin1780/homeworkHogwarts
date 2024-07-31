@@ -38,12 +38,12 @@ public class FacultyController {
     }
 
     @GetMapping(params = "color")
-    public List<Faculty> filterByColor(@RequestParam String color) {
+    public List<Faculty> filterByColor(@RequestParam(required = false) String color) {
         return facultyService.filterByColor(color);
     }
 
     @GetMapping(params = "colorOrName")
-    public List<Faculty> filterByColorOrName(@RequestParam String colorOrName) {
+    public List<Faculty> filterByColorOrName(@RequestParam(required = false) String colorOrName) {
         return facultyService.filterByColorOrName(colorOrName);
     }
 
