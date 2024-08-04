@@ -12,4 +12,9 @@ public class HogwartsExceptionHandler {
     public ResponseEntity<String> handleNotFoundException(NotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
+
+    @ExceptionHandler(AvatarProcessingException.class)
+    public ResponseEntity<String> handleAvatarProcessingException() {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Не удалось прочитать аватарку");
+    }
 }
