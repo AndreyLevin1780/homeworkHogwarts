@@ -27,7 +27,7 @@ public class AvatarService {
     private final AvatarRepository avatarRepository;
     private final Path path;
 
-    public AvatarService(StudentRepository studentRepository, AvatarRepository avatarRepository, @Value("$ {application.avatars-dir-name}") String avatarsDirName) {
+    public AvatarService(StudentRepository studentRepository, AvatarRepository avatarRepository, @Value("${application.avatars-dir-name}") String avatarsDirName) {
         this.studentRepository = studentRepository;
         this.avatarRepository = avatarRepository;
         path = Paths.get(avatarsDirName);
