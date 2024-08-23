@@ -26,7 +26,9 @@ public class StudentController {
 
     @PostMapping
     public Student create(@RequestBody Student student) {
+
         return studentService.create(student);
+
     }
 
     @PutMapping("/{id}")
@@ -60,17 +62,17 @@ public class StudentController {
     }
 
     @GetMapping("{id}/avatar-from-db")
-    public ResponseEntity<byte[]> getAvatarFromDb (@PathVariable long id) {
+    public ResponseEntity<byte[]> getAvatarFromDb(@PathVariable long id) {
         return buildResponseEntity(avatarService.getAvatarFromDb(id));
     }
 
     @GetMapping("{id}/avatar-from-fs")
-    public ResponseEntity<byte[]> getAvatarFromFs (@PathVariable long id) {
+    public ResponseEntity<byte[]> getAvatarFromFs(@PathVariable long id) {
         return buildResponseEntity(avatarService.getAvatarFromFs(id));
     }
 
-    private ResponseEntity<byte[]> buildResponseEntity (Pair<byte[], String> pair) {
-        byte [] data = pair.getFirst();
+    private ResponseEntity<byte[]> buildResponseEntity(Pair<byte[], String> pair) {
+        byte[] data = pair.getFirst();
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .contentLength(data.length)
