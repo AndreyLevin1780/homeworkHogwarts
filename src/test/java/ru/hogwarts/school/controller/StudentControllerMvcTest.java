@@ -9,10 +9,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.hogwarts.school.controller.StudentController;
-import ru.hogwarts.school.exception.FacultyNotFoundException;
-import ru.hogwarts.school.exception.StudentNotFoundException;
 import ru.hogwarts.school.entity.Faculty;
 import ru.hogwarts.school.entity.Student;
 import ru.hogwarts.school.repository.FacultyRepository;
@@ -20,9 +16,10 @@ import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.service.AvatarService;
 import ru.hogwarts.school.service.StudentService;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -131,7 +128,11 @@ public class StudentControllerMvcTest {
     @Test
     @DisplayName("Корректно создает студента")
     void createStudent() throws Exception {
-        Student student = new Student(null, "Test student", 20);
+        Faculty faculty = generateFaculty();
+        faculty.setId(1L);
+        Student student = new Student(1L, "Test student", 20);
+        student.setFaculty(faculty);
+        System.out.println(student);
         when(studentRepository.save(any())).thenReturn(student);
         mockMvc.perform(post("/student")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -146,9 +147,8 @@ public class StudentControllerMvcTest {
     void updateStudent() throws Exception {
 
         long id = 1L;
-        Faculty faculty = new Faculty();
-        faculty.setColor("red");
-        faculty.setName(faker.harryPotter().house());
+
+        Faculty faculty = generateFaculty();
         faculty.setId(id);
 
         Student student1 = new Student();
@@ -162,10 +162,11 @@ public class StudentControllerMvcTest {
         student2.setAge(12);
         student2.setName(faker.harryPotter().character());
         student2.setFaculty(faculty);
+        System.out.println(student2);
 
         when(studentRepository.findById(id)).thenReturn(Optional.of(student1));
 
-        mockMvc.perform(put("/student/" + id)
+        mockMvc.perform(put("/student/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(student2.toString()))
                 .andExpect(status().isOk());
@@ -194,7 +195,6 @@ public class StudentControllerMvcTest {
         verify(studentRepository, times(1)).delete(student);
 
     }
-
 
     private Faculty generateFaculty() {
         Faculty faculty = new Faculty(faker.harryPotter().house(), faker.color().name());
