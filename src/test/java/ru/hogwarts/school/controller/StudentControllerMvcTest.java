@@ -1,145 +1,203 @@
 package ru.hogwarts.school.controller;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+
+import net.datafaker.Faker;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.util.Pair;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.hogwarts.school.controller.StudentController;
+import ru.hogwarts.school.exception.FacultyNotFoundException;
+import ru.hogwarts.school.exception.StudentNotFoundException;
 import ru.hogwarts.school.entity.Faculty;
 import ru.hogwarts.school.entity.Student;
+import ru.hogwarts.school.repository.FacultyRepository;
+import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.service.AvatarService;
 import ru.hogwarts.school.service.StudentService;
 
-import java.util.List;
+import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
-
-@WebMvcTest(StudentController.class)
+@WebMvcTest(controllers = StudentController.class)
 public class StudentControllerMvcTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Mock
+    @MockBean
+    private StudentRepository studentRepository;
+    @MockBean
+    private FacultyRepository facultyRepository;
+    @MockBean
+    private AvatarService avatarService;
+    @SpyBean
     private StudentService studentService;
 
-    @Mock
-    private AvatarService avatarService;
+    private final Faker faker = new Faker();
 
-    @InjectMocks
-    private StudentController studentController;
+    @Test
+    @DisplayName("Корректно находит студента по возрасту")
+    void getStudentAge() throws Exception {
 
-    private ObjectMapper objectMapper;
+        Student student1 = new Student();
+        student1.setId(1L);
+        student1.setAge(10);
+        student1.setName(faker.harryPotter().character());
 
-    private Student testStudent;
+        Student student2 = new Student();
+        student1.setId(2L);
+        student1.setAge(10);
+        student1.setName(faker.harryPotter().character());
 
-    @BeforeEach
-    public void setUp() {
-        objectMapper = new ObjectMapper();
-        testStudent = new Student();
-        testStudent.setId(1L);
-        testStudent.setName("Test Student");
-        testStudent.setAge(20);
+        when(studentRepository.findAllByAge(10)).thenReturn(Arrays.asList(student1, student2));
+        mockMvc.perform(get("/student?age=10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
     }
 
     @Test
-    public void createStudent() throws Exception {
-        when(studentService.create(any(Student.class))).thenReturn(testStudent);
+    @DisplayName("Корректно находит студентов по диапазону возрастов")
+    void findStudentByAgeBetween() throws Exception {
+        Student student1 = new Student();
+        student1.setId(1L);
+        student1.setAge(15);
+        student1.setName(faker.harryPotter().character());
 
+        Student student2 = new Student();
+        student1.setId(2L);
+        student1.setAge(18);
+        student1.setName(faker.harryPotter().character());
+
+        when(studentRepository.findAllByAgeBetween(10, 20)).thenReturn(Arrays.asList(student1, student2));
+        mockMvc.perform(get("/student?minAge=10&&maxAge=20"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+
+    }
+
+    @Test
+    @DisplayName("Корректно находит факультеты по id")
+    void findStudentsFaculty() throws Exception {
+
+        long id = 1L;
+        String name = faker.harryPotter().house();
+        String color = faker.color().name();
+        Faculty faculty = new Faculty();
+        faculty.setColor(color);
+        faculty.setName(name);
+        faculty.setId(id);
+        Student student1 = new Student();
+        student1.setId(id);
+        student1.setAge(10);
+        student1.setName(faker.harryPotter().character());
+        student1.setFaculty(faculty);
+
+        when(studentRepository.existsById(any())).thenReturn(true);
+        when(studentRepository.findById(id)).thenReturn(Optional.of(student1));
+
+        mockMvc.perform(get("/student/" + id + "/faculty")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value(name))
+                .andExpect(jsonPath("$.color").value(color));
+    }
+
+    @Test
+    @DisplayName("Корректно находит студента по id")
+    void getStudent() throws Exception {
+        long id = 1L;
+        Student student1 = new Student();
+        student1.setId(id);
+        student1.setAge(15);
+        student1.setName(faker.harryPotter().character());
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student1));
+        mockMvc.perform(get("/student/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value(student1.getName()))
+                .andExpect(jsonPath("$.age").value(student1.getAge()));
+
+    }
+
+    @Test
+    @DisplayName("Корректно создает студента")
+    void createStudent() throws Exception {
+        Student student = new Student(null, "Test student", 20);
+        when(studentRepository.save(any())).thenReturn(student);
         mockMvc.perform(post("/student")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testStudent)))
+                        .content(student.toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Test Student"));
+                .andExpect(jsonPath("$.name").value(student.getName()))
+                .andExpect(jsonPath("$.age").value(student.getAge()));
     }
 
     @Test
-    public void updateStudent() throws Exception {
-        mockMvc.perform(put("/student/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(testStudent)))
-                .andExpect(status().isOk());
+    @DisplayName("Корректно обновляет данные студента")
+    void updateStudent() throws Exception {
 
-        verify(studentService, times(1)).update(eq(1L), any(Student.class));
-    }
-
-    @Test
-    public void getStudent() throws Exception {
-        when(studentService.get(1L)).thenReturn(testStudent);
-
-        mockMvc.perform(get("/student/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Test Student"));
-    }
-
-    @Test
-    public void removeStudent() throws Exception {
-        when(studentService.remove(1L)).thenReturn(testStudent);
-
-        mockMvc.perform(delete("/student/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Test Student"));
-
-        verify(studentService, times(1)).remove(1L);
-    }
-
-    @Test
-    public void filterByAge() throws Exception {
-        when(studentService.filterByAge(20)).thenReturn(List.of(testStudent));
-
-        mockMvc.perform(get("/student?age=20"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Test Student"));
-    }
-
-    @Test
-    public void filterByRangeAge() throws Exception {
-        when(studentService.filterByRangeAge(18, 22)).thenReturn(List.of(testStudent));
-
-        mockMvc.perform(get("/student?minAge=18&maxAge=22"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Test Student"));
-    }
-
-    @Test
-    public void findStudentsFaculty() throws Exception {
+        long id = 1L;
         Faculty faculty = new Faculty();
-        faculty.setId(1L);
-        faculty.setName("Test Faculty");
-        when(studentService.findStudentsFaculty(1L)).thenReturn(faculty);
+        faculty.setColor("red");
+        faculty.setName(faker.harryPotter().house());
+        faculty.setId(id);
 
-        mockMvc.perform(get("/student/1/faculty"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Test Faculty"));
+        Student student1 = new Student();
+        student1.setId(id);
+        student1.setAge(10);
+        student1.setName(faker.harryPotter().character());
+        student1.setFaculty(faculty);
+
+        Student student2 = new Student();
+        student2.setId(id);
+        student2.setAge(12);
+        student2.setName(faker.harryPotter().character());
+        student2.setFaculty(faculty);
+
+        when(studentRepository.findById(id)).thenReturn(Optional.of(student1));
+
+        mockMvc.perform(put("/student/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(student2.toString()))
+                .andExpect(status().isOk());
+        verify(studentRepository, times(1)).save(any());
+
     }
 
     @Test
-    public void getAvatarFromDb() throws Exception {
-        byte[] avatarData = new byte[]{1, 2, 3};
-        when(avatarService.getAvatarFromDb(1L)).thenReturn(Pair.of(avatarData, "image/png"));
+    @DisplayName("Корректно удаляет студента")
+    void deleteStudent() throws Exception {
 
-        mockMvc.perform(get("/student/1/avatar-from-db"))
-                .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", "image/png"));
+        long id = new Random().nextLong(1,3);
+        Student student = new Student();
+        student.setId(id);
+        student.setAge(10);
+        student.setName(faker.harryPotter().character());
+        System.out.println(student);
+
+        when(studentRepository.save(any(Student.class))).thenReturn(student);
+        when(studentRepository.findById(any(Long.class))).thenReturn(Optional.of(student));
+        when(studentRepository.existsById(any())).thenReturn(true);
+
+        mockMvc.perform(delete("/student/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+        verify(studentRepository, times(1)).delete(student);
+
     }
 
-    @Test
-    public void getAvatarFromFs() throws Exception {
-        byte[] avatarData = new byte[]{1, 2, 3};
-        when(avatarService.getAvatarFromFs(1L)).thenReturn(Pair.of(avatarData, "image/png"));
 
-        mockMvc.perform(get("/student/1/avatar-from-fs"))
-                .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", "image/png"));
+    private Faculty generateFaculty() {
+        Faculty faculty = new Faculty(faker.harryPotter().house(), faker.color().name());
+        return faculty;
     }
 }

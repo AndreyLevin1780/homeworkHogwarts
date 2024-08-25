@@ -45,6 +45,17 @@ public class FacultyService {
         return faculty;
     }
 
+
+    //public void deleteFaculty(long id) {
+      //  logger.info("Was invoked method for \"deleteFaculty\"");
+        //if (!facultyRepository.existsById(id)) {
+          //  logger.error("There is not faculty with id = " + id);
+           // throw new FacultyNotFoundException(id);
+        //}
+    //facultyRepository.deleteById(id)
+    //}
+
+
     public List<Faculty> filterByColor(String color) {
         return facultyRepository.findAllByColor(color);
     }
