@@ -1,6 +1,8 @@
 package ru.hogwarts.school.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.datafaker.Faker;
+import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.hogwarts.school.entity.Faculty;
 import ru.hogwarts.school.entity.Student;
 import ru.hogwarts.school.repository.FacultyRepository;
@@ -41,6 +44,8 @@ public class StudentControllerMvcTest {
     private StudentService studentService;
 
     private final Faker faker = new Faker();
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @DisplayName("Корректно находит студента по возрасту")
@@ -125,60 +130,67 @@ public class StudentControllerMvcTest {
 
     }
 
+
     @Test
     @DisplayName("Корректно создает студента")
-    void createStudent() throws Exception {
+    void createStudentTemp() throws Exception {
         Faculty faculty = generateFaculty();
         faculty.setId(1L);
         Student student = new Student(1L, "Test student", 20);
         student.setFaculty(faculty);
         System.out.println(student);
-        when(studentRepository.save(any())).thenReturn(student);
+
+        JSONObject studentObject = new JSONObject();
+        studentObject.put("id", student.getId());
+        studentObject.put("name", student.getName());
+        studentObject.put("age", student.getAge());
+
+        when(studentRepository.save(any(Student.class))).thenReturn(student);
         mockMvc.perform(post("/student")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(student.toString()))
+                        .content(studentObject.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(student.getName()))
                 .andExpect(jsonPath("$.age").value(student.getAge()));
+        verify(studentRepository, only()).save(any());
     }
 
     @Test
     @DisplayName("Корректно обновляет данные студента")
     void updateStudent() throws Exception {
 
+        Faculty faculty = generateFaculty();
+        faculty.setId(1L);
+
         long id = 1L;
 
-        Faculty faculty = generateFaculty();
-        faculty.setId(id);
-
-        Student student1 = new Student();
-        student1.setId(id);
-        student1.setAge(10);
-        student1.setName(faker.harryPotter().character());
+        Student student1 = new Student(id, "Test student", 20);
         student1.setFaculty(faculty);
+        System.out.println(student1);
 
-        Student student2 = new Student();
-        student2.setId(id);
-        student2.setAge(12);
-        student2.setName(faker.harryPotter().character());
+        Student student2 = new Student(id, "Another Test student", 22);
         student2.setFaculty(faculty);
         System.out.println(student2);
+
+        JSONObject studentObject = new JSONObject();
+        studentObject.put("id", student2.getId());
+        studentObject.put("name", student2.getName());
+        studentObject.put("age", student2.getAge());
 
         when(studentRepository.findById(id)).thenReturn(Optional.of(student1));
 
         mockMvc.perform(put("/student/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(student2.toString()))
+                        .content(studentObject.toString()))
                 .andExpect(status().isOk());
         verify(studentRepository, times(1)).save(any());
-
     }
 
     @Test
     @DisplayName("Корректно удаляет студента")
     void deleteStudent() throws Exception {
 
-        long id = new Random().nextLong(1,3);
+        long id = new Random().nextLong(1, 3);
         Student student = new Student();
         student.setId(id);
         student.setAge(10);
