@@ -24,8 +24,8 @@ public class AvatarController {
     }
 
     @GetMapping
-    public List<Avatar> getAllAvatarsForPage(@RequestParam ("page") Integer pageNumber,
-                                             @RequestParam ("size") Integer pageSize){
-        return avatarService.getAvatarsByPage(pageNumber,pageSize);
+    public List<Avatar> getAllAvatarsForPage(@RequestParam("page") Integer pageNumber,
+                                             @RequestParam("size") Integer pageSize) {
+        return avatarService.getAvatarsByPage(pageNumber, pageSize);
     }
 }

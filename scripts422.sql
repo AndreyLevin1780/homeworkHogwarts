@@ -1,0 +1,2 @@
+CREATE TABLE drivers (id SERIAL PRIMARY KEY, name TEXT NOT NULL, age INTEGER CHECK (age >= 18), drivers_license_is_valid BOOLEAN, car_id INTEGER REFERENCES cars (id));
+CREATE TABLE cars (id SERIAL PRIMARY KEY, manufacturer TEXT NOT NULL, model TEXT NOT NULL, price INTEGER CHECK (price > 0));
