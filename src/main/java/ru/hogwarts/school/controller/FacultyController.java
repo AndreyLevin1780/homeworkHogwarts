@@ -54,4 +54,14 @@ public class FacultyController {
     public List<Student> findStudentsByFacultyId(@PathVariable long id) {
         return facultyService.findStudentsByFacultyId(id);
     }
+
+    @GetMapping("/longest-name")
+    public String getFacultyWithLongestName() {
+        return facultyService.getFacultyWithLongestName();
+    }
+
+    @GetMapping("/test-parallel-int")
+    public int getTestParallelInt() {
+        return facultyService.getTestParallelInt();
+    }
 }

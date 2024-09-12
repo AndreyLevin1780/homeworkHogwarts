@@ -10,7 +10,9 @@ import ru.hogwarts.school.exception.StudentNotFoundException;
 import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class StudentService {
@@ -120,5 +122,22 @@ public class StudentService {
     public List<Student> getLastFiveStudents() {
         logger.info("Was invoked method for \"getLastFiveStudents\"");
         return studentRepository.getLastFiveStudents();
+    }
+
+    public List<String> getAllStudentsWithNameStartsWithLetterA() {
+
+        return studentRepository.findAll()
+                .stream()
+                .map(Student::getName)
+                .map(String::toUpperCase)
+                .filter(name -> name.startsWith("A"))
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    public double getMidAgeOfStudents() {
+        return studentRepository.findAll()
+                .stream()
+                .collect(Collectors.averagingDouble(Student::getAge));
     }
 }

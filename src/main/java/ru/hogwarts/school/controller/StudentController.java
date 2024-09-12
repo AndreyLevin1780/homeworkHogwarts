@@ -10,6 +10,7 @@ import ru.hogwarts.school.entity.Student;
 import ru.hogwarts.school.service.AvatarService;
 import ru.hogwarts.school.service.StudentService;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -93,5 +94,16 @@ public class StudentController {
     @GetMapping("/last-five")
     public List<Student> getLastFiveStudents() {
         return studentService.getLastFiveStudents();
+    }
+
+    @GetMapping("/name-a")
+    public List<String> getAllStudentsWithNameStartsWithLetterA() {
+        return studentService.getAllStudentsWithNameStartsWithLetterA();
+    }
+
+    @GetMapping("/mid-age")
+
+    public double getMidAgeOfStudents() {
+        return studentService.getMidAgeOfStudents();
     }
 }
