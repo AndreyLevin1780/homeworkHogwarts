@@ -96,7 +96,8 @@ public class FacultyService {
 
         long fTime = System.currentTimeMillis();
 
-        logger.info("Stream execution time: " + (fTime - sTime) + " ms");
+
+        logger.info("Sum is " + sum + ". Stream execution time: " + (fTime - sTime) + " ms");
 
         sum = 0;
         sTime = System.currentTimeMillis();
@@ -105,7 +106,7 @@ public class FacultyService {
         }
         fTime = System.currentTimeMillis();
 
-        logger.info("Cycle execution time: " + (fTime - sTime) + " ms");
+        logger.info("Sum is " + sum + ". Cycle execution time: " + (fTime - sTime) + " ms");
     }
 
 
