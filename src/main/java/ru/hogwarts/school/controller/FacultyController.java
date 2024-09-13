@@ -61,7 +61,7 @@ public class FacultyController {
     }
 
     @GetMapping("/test-parallel-int")
-    public int getTestParallelInt() {
-        return facultyService.getTestParallelInt();
+    public void getTestParallelInt() {
+        facultyService.getTestParallelInt();
     }
 }

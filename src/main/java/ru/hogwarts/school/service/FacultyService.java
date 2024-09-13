@@ -85,10 +85,28 @@ public class FacultyService {
                 .max(Comparator.comparing(String::length)).orElseThrow();
     }
 
-    public int getTestParallelInt() {
-            return Stream.iterate(1, a -> a + 1)
-                    .limit(1_000_000)
-                    .parallel()
-                    .reduce(0, (a, b) -> a + b);
+    public void getTestParallelInt() {
+
+        long sTime = System.currentTimeMillis();
+
+        int sum = Stream.iterate(1, a -> a + 1)
+                .limit(1_000_000)
+                .parallel()
+                .reduce(0, (a, b) -> a + b);
+
+        long fTime = System.currentTimeMillis();
+
+        logger.info("Stream execution time: " + (fTime - sTime) + " ms");
+
+        sum = 0;
+        sTime = System.currentTimeMillis();
+        for (int i = 0; i < 1_000_000; i++) {
+            sum += i;
+        }
+        fTime = System.currentTimeMillis();
+
+        logger.info("Cycle execution time: " + (fTime - sTime) + " ms");
     }
+
+
 }
