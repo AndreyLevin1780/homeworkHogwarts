@@ -102,8 +102,17 @@ public class StudentController {
     }
 
     @GetMapping("/mid-age")
-
     public double getMidAgeOfStudents() {
         return studentService.getMidAgeOfStudents();
+    }
+
+    @GetMapping("/print-parallel")
+    public void printStudentsNameByParallel() {
+        studentService.printStudentsNameByParallel();
+    }
+
+    @GetMapping("/print-synchronized")
+    public void printStudentsNameBySynchronized() {
+        studentService.printStudentsNameBySynchronized();
     }
 }

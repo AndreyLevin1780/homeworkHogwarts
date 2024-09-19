@@ -10,9 +10,10 @@ import ru.hogwarts.school.exception.StudentNotFoundException;
 import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 
 @Service
 public class StudentService {
@@ -20,6 +21,8 @@ public class StudentService {
     private static final Logger logger = LoggerFactory.getLogger(StudentService.class);
     private final StudentRepository studentRepository;
     private final FacultyRepository facultyRepository;
+
+    final Object syncFlag = new Object();
 
     public StudentService(StudentRepository studentRepository, FacultyRepository facultyRepository) {
         this.studentRepository = studentRepository;
@@ -139,5 +142,43 @@ public class StudentService {
         return studentRepository.findAll()
                 .stream()
                 .collect(Collectors.averagingDouble(Student::getAge));
+    }
+
+    public void printStudentsNameByParallel() {
+        List<String> firstSixNames = studentRepository.getFirstSixStudents();
+        System.out.println("Список студентов по очереди: " + firstSixNames);
+
+        System.out.println(firstSixNames.get(0));
+        System.out.println(firstSixNames.get(1));
+
+        new Thread(() -> {
+            System.out.println(firstSixNames.get(2));
+            System.out.println(firstSixNames.get(3));
+        }).start();
+
+        new Thread(() -> {
+            System.out.println(firstSixNames.get(4));
+            System.out.println(firstSixNames.get(5));
+        }).start();
+    }
+
+    public void printStudentsNameBySynchronized() {
+        List<String> firstSixNames = studentRepository.getFirstSixStudents();
+        System.out.println("Список студентов по очереди: " + firstSixNames);
+
+        System.out.println(firstSixNames.get(0));
+        System.out.println(firstSixNames.get(1));
+
+        new Thread(() -> {
+            synchronized (syncFlag){
+                System.out.println(firstSixNames.get(2));
+                System.out.println(firstSixNames.get(3));}
+        }).start();
+
+        new Thread(() -> {
+            synchronized (syncFlag){
+                System.out.println(firstSixNames.get(4));
+                System.out.println(firstSixNames.get(5));}
+        }).start();
     }
 }
