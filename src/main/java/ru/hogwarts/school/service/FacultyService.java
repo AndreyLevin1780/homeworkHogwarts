@@ -11,6 +11,7 @@ import ru.hogwarts.school.repository.StudentRepository;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Service
@@ -96,8 +97,17 @@ public class FacultyService {
 
         long fTime = System.currentTimeMillis();
 
-
         logger.info("Sum is " + sum + ". Stream execution time: " + (fTime - sTime) + " ms");
+
+
+        sTime = System.currentTimeMillis();
+        int sum1 = IntStream.iterate(1, a -> a + 1)
+                .limit(1_000_000)
+                .reduce(0, (a, b) -> a + b);
+        fTime = System.currentTimeMillis();
+
+        logger.info("Sum is " + sum1 + ". IntStream execution time: " + (fTime - sTime) + " ms");
+
 
         sum = 0;
         sTime = System.currentTimeMillis();
